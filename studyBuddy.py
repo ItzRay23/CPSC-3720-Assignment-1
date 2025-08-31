@@ -50,7 +50,6 @@ class Student:
     def add_class(self, course: str):
         if course not in self.classes:
             self.classes.append(course)
-            print(f"Added class: {course}")
         else:
             print(f"Class '{course}' already in profile.")
     
@@ -58,7 +57,6 @@ class Student:
     def remove_class(self, course: str):
         if course in self.classes:
             self.classes.remove(course)
-            print(f"Removed class: {course}")
         else:
             print(f"Class '{course}' not found in profile.")
     
@@ -178,7 +176,7 @@ def confirm_meeting(current_student, students):
             print("Invalid class choice.")
             return
 
-        time_index = int(input("Choose a time index from above: "))
+        time_index = int(input("Choose a time index from above [0, 1, 2]: "))
         a, b = shared_times[time_index]
 
         # For simplicity, use the overlap start and end time (not perfect, but workable)
@@ -287,7 +285,8 @@ def main_menu(student: Student, all_students: list):
         print("2. Classes")
         print("3. Availability")
         print("4. Suggest Matches")
-        print("5. Exit")
+        print("5. Confirm Meeting")
+        print("6. Exit")
 
         choice = input("Select an option: ")
 
@@ -310,6 +309,8 @@ def main_menu(student: Student, all_students: list):
             else:
                 print("No matches found.")
         elif choice == "5":
+            confirm_meeting(student, all_students)
+        elif choice == "6":
             print("Exiting... Goodbye!")
             break
         else:
@@ -325,6 +326,7 @@ if __name__ == "__main__":
     # Example preloaded students
     student2 = Student("Jane Smith", "janesmith@example.com")
     student2.add_class("Math 101")
+    student2.add_class("Physics 101")
     student2.add_availability("Monday", "11:00", "13:00")
 
     student3 = Student("Alice Brown", "aliceb@example.com")
