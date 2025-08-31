@@ -23,14 +23,27 @@ class Availability:
 
         return not (end1 <= start2 or end2 <= start1)
 
+class Meeting:
+    def __init__(self, student1, student2, course, day, start, end):
+        self.student1 = student1
+        self.student2 = student2
+        self.course = course
+        self.day = day
+        self.start = start
+        self.end = end
+
+    def __str__(self):
+        return f"{self.course} Study Session on {self.day} {self.start}-{self.end} with {self.student2.name}"
 
 class Student:
-    def __init__(self, name: str, email: str, bio: str = "", classes=None):
+    def __init__(self, name, email):
         self.name = name
         self.email = email
-        self.bio = bio
-        self.classes = classes if classes else []
+        self.bio = ""
+        self.classes = []
         self.availability = []
+        self.meetings = []  # new feature
+
 
     # ---------- Profile Methods ----------
     # Adds classes to user profile
@@ -76,13 +89,16 @@ class Student:
 
     # ---------- Availability Methods ----------
     # Adds availability slot to user profile
-    def add_availability(self, day: str, start_time: str, end_time: str):
-        slot = Availability(day, start_time, end_time)
-        if slot not in self.availability:
-            self.availability.append(slot)
-            print(f"Added availability: {slot}")
-        else:
-            print("This availability slot already exists.")
+    def add_availability(self, day, start_time, end_time):
+        """Add a new availability slot, ensuring no duplicates are added."""
+        for slot in self.availability:
+            if (
+                slot.day == day
+                and slot.start_time == start_time
+                and slot.end_time == end_time
+            ):
+                return
+        self.availability.append(Availability(day, start_time, end_time))
     
     # Removes availability slot from user profile by index
     def remove_availability(self, index: int):
@@ -91,6 +107,9 @@ class Student:
             print(f"Removed availability: {removed}")
         else:
             print("Invalid availability index.")
+    
+    def add_meeting(self, meeting):
+        self.meetings.append(meeting)
 
     # ---------- Match Suggestion ----------
     def suggest_matches(self, other_students: list):
@@ -106,6 +125,74 @@ class Student:
                             matches.append((other, list(shared_classes), my_slot, their_slot))
                             break
         return matches
+    
+    def __str__(self):
+        classes = ", ".join(self.classes) if self.classes else "None"
+        availability = "\n".join(str(a) for a in self.availability) if self.availability else "None"
+        meetings = "\n".join(str(m) for m in self.meetings) if self.meetings else "None"
+        return (
+            f"Name: {self.name}\n"
+            f"Email: {self.email}\n"
+            f"Bio: {self.bio}\n"
+            f"Classes: {classes}\n"
+            f"Availability:\n{availability}\n"
+            f"Meetings:\n{meetings}\n"
+        )
+
+# ---------- Confirm Meetings Feature ----------
+def confirm_meeting(current_student, students):
+    print("\n--- Confirm a Meeting ---")
+    # Show suggested matches first
+    possible_matches = []
+    for student in students:
+        if student.email == current_student.email:
+            continue
+
+        shared_classes = set(current_student.classes) & set(student.classes)
+        if not shared_classes:
+            continue
+
+        shared_availability = [
+            (a, b) for a in current_student.availability for b in student.availability if a.day == b.day
+        ]
+        if shared_availability:
+            possible_matches.append((student, shared_classes, shared_availability))
+
+    if not possible_matches:
+        print("No available matches to confirm.")
+        return
+
+    # Display possible matches
+    for i, (student, classes, times) in enumerate(possible_matches):
+        print(f"{i}. {student.name} ({student.email})")
+        print(f"   Classes: {', '.join(classes)}")
+        for j, (a, b) in enumerate(times):
+            print(f"     {j}. {a.day}: You({a.start_time}-{a.end_time}) | {student.name}({b.start_time}-{b.end_time})")
+
+    try:
+        match_index = int(input("Select a student by index: "))
+        chosen_student, shared_classes, shared_times = possible_matches[match_index]
+
+        class_choice = input(f"Choose a class from shared classes {list(shared_classes)}: ")
+        if class_choice not in shared_classes:
+            print("Invalid class choice.")
+            return
+
+        time_index = int(input("Choose a time index from above: "))
+        a, b = shared_times[time_index]
+
+        # For simplicity, use the overlap start and end time (not perfect, but workable)
+        meeting = Meeting(current_student, chosen_student, class_choice, a.day, a.start_time, a.end_time)
+        current_student.add_meeting(meeting)
+
+        # Add reciprocal meeting for partner
+        partner_meeting = Meeting(chosen_student, current_student, class_choice, a.day, a.start_time, a.end_time)
+        chosen_student.add_meeting(partner_meeting)
+
+        print(f"Meeting confirmed with {chosen_student.name} for {class_choice} on {a.day} {a.start_time}-{a.end_time}")
+    except (ValueError, IndexError):
+        print("Invalid input. Meeting not created.")
+
 
 
 def profile_menu(student: Student):
