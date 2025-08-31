@@ -108,18 +108,12 @@ class Student:
         return matches
 
 
-def main_menu(student: Student, all_students: list):
+def profile_menu(student: Student):
     while True:
-        print("\nStudy Buddy - Main Menu")
+        print("\nProfile Menu")
         print("1. View Profile")
         print("2. Update Bio")
-        print("3. Add Class")
-        print("4. Remove Class")
-        print("5. Add Availability")
-        print("6. Remove Availability")
-        print("7. Suggest Matches")
-        print("8. Exit")
-
+        print("3. Back to Main Menu")
         choice = input("Select an option: ")
 
         if choice == "1":
@@ -128,29 +122,95 @@ def main_menu(student: Student, all_students: list):
             bio = input("Enter new bio: ")
             student.update_bio(bio)
         elif choice == "3":
+            break
+        else:
+            print("Invalid choice.")
+
+
+def classes_menu(student: Student):
+    while True:
+        print("\nClasses Menu")
+        print("1. View Classes")
+        print("2. Add Class")
+        print("3. Remove Class")
+        print("4. Back to Main Menu")
+        choice = input("Select an option: ")
+
+        if choice == "1":
+            print("Your Classes:")
+            if student.classes:
+                for c in student.classes:
+                    print(f"- {c}")
+            else:
+                print("None")
+        elif choice == "2":
             course = input("Enter class name to add: ")
             student.add_class(course)
-        elif choice == "4":
+        elif choice == "3":
             course = input("Enter class name to remove: ")
             student.remove_class(course)
-        elif choice == "5":
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice.")
+
+
+def availability_menu(student: Student):
+    while True:
+        print("\nAvailability Menu")
+        print("1. View Availability")
+        print("2. Add Availability")
+        print("3. Remove Availability")
+        print("4. Back to Main Menu")
+        choice = input("Select an option: ")
+
+        if choice == "1":
+            print("Your Availability:")
+            if student.availability:
+                for i, slot in enumerate(student.availability):
+                    print(f"{i}. {slot}")
+            else:
+                print("None")
+        elif choice == "2":
             day = input("Enter day (e.g., Monday): ")
             start = input("Enter start time (HH:MM): ")
             end = input("Enter end time (HH:MM): ")
             student.add_availability(day, start, end)
-        elif choice == "6":
+        elif choice == "3":
             if student.availability:
-                print("Select availability to remove:")
                 for i, slot in enumerate(student.availability):
                     print(f"{i}. {slot}")
                 try:
-                    idx = int(input("Enter index: "))
+                    idx = int(input("Enter index to remove: "))
                     student.remove_availability(idx)
                 except ValueError:
                     print("Invalid input.")
             else:
-                print("No availability slots to remove.")
-        elif choice == "7":
+                print("No availability to remove.")
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice.")
+
+
+def main_menu(student: Student, all_students: list):
+    while True:
+        print("\nStudy Buddy - Main Menu")
+        print("1. Profile")
+        print("2. Classes")
+        print("3. Availability")
+        print("4. Suggest Matches")
+        print("5. Exit")
+
+        choice = input("Select an option: ")
+
+        if choice == "1":
+            profile_menu(student)
+        elif choice == "2":
+            classes_menu(student)
+        elif choice == "3":
+            availability_menu(student)
+        elif choice == "4":
             matches = student.suggest_matches(all_students)
             if matches:
                 print("\nSuggested Matches:")
@@ -162,7 +222,7 @@ def main_menu(student: Student, all_students: list):
                     print(f"  Their Availability: {their_slot}")
             else:
                 print("No matches found.")
-        elif choice == "8":
+        elif choice == "5":
             print("Exiting... Goodbye!")
             break
         else:
@@ -175,7 +235,7 @@ if __name__ == "__main__":
     email = input("Enter your email: ")
     user_student = Student(name, email)
 
-    # Example students (mock database of other users)
+    # Example preloaded students
     student2 = Student("Jane Smith", "janesmith@example.com")
     student2.add_class("Math 101")
     student2.add_availability("Monday", "11:00", "13:00")
