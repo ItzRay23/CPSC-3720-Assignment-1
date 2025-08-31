@@ -1,5 +1,5 @@
 import unittest
-from study-buddy import Student
+from studyBuddy import Student
 
 class TestStudentProfile(unittest.TestCase):
 
