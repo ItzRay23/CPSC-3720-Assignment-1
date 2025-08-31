@@ -9,6 +9,20 @@ class Availability:
     def __str__(self):
         return f"{self.day}: {self.start_time} - {self.end_time}"
 
+    def overlaps(self, other) -> bool:
+        """Check if two availability slots overlap (same day + overlapping times)."""
+        if self.day != other.day:
+            return False
+
+        def to_minutes(t):
+            h, m = map(int, t.split(":"))
+            return h * 60 + m
+
+        start1, end1 = to_minutes(self.start_time), to_minutes(self.end_time)
+        start2, end2 = to_minutes(other.start_time), to_minutes(other.end_time)
+
+        return not (end1 <= start2 or end2 <= start1)
+
 
 class Student:
     def __init__(self, name: str, email: str, bio: str = "", classes=None):
@@ -78,8 +92,23 @@ class Student:
         else:
             print("Invalid availability index.")
 
+    # ---------- Match Suggestion ----------
+    def suggest_matches(self, other_students: list):
+        matches = []
+        for other in other_students:
+            if other.email == self.email:
+                continue  # skip self
+            shared_classes = set(self.classes) & set(other.classes)
+            if shared_classes:
+                for my_slot in self.availability:
+                    for their_slot in other.availability:
+                        if my_slot.overlaps(their_slot):
+                            matches.append((other, list(shared_classes), my_slot, their_slot))
+                            break
+        return matches
 
-def main_menu(student: Student):
+
+def main_menu(student: Student, all_students: list):
     while True:
         print("\nStudy Buddy - Main Menu")
         print("1. View Profile")
@@ -88,7 +117,8 @@ def main_menu(student: Student):
         print("4. Remove Class")
         print("5. Add Availability")
         print("6. Remove Availability")
-        print("7. Exit")
+        print("7. Suggest Matches")
+        print("8. Exit")
 
         choice = input("Select an option: ")
 
@@ -121,6 +151,18 @@ def main_menu(student: Student):
             else:
                 print("No availability slots to remove.")
         elif choice == "7":
+            matches = student.suggest_matches(all_students)
+            if matches:
+                print("\nSuggested Matches:")
+                for match in matches:
+                    other, classes, my_slot, their_slot = match
+                    print(f"- {other.name} ({other.email})")
+                    print(f"  Shared Classes: {', '.join(classes)}")
+                    print(f"  Your Availability: {my_slot}")
+                    print(f"  Their Availability: {their_slot}")
+            else:
+                print("No matches found.")
+        elif choice == "8":
             print("Exiting... Goodbye!")
             break
         else:
@@ -128,6 +170,20 @@ def main_menu(student: Student):
 
 
 if __name__ == "__main__":
-    # Example student
-    student = Student(name="John Doe", email="johndoe@example.com")
-    main_menu(student)
+    print("Welcome to Study Buddy!")
+    name = input("Enter your name: ")
+    email = input("Enter your email: ")
+    user_student = Student(name, email)
+
+    # Example students (mock database of other users)
+    student2 = Student("Jane Smith", "janesmith@example.com")
+    student2.add_class("Math 101")
+    student2.add_availability("Monday", "11:00", "13:00")
+
+    student3 = Student("Alice Brown", "aliceb@example.com")
+    student3.add_class("History 202")
+    student3.add_availability("Tuesday", "09:00", "11:00")
+
+    all_students = [user_student, student2, student3]
+
+    main_menu(user_student, all_students)
